@@ -1,7 +1,7 @@
 ## HPAIR App Backend
 
 ## Features
-- [ ]
+- []
 
 ## Dependencies
  - cors
@@ -15,7 +15,7 @@
  ## Running
 
 
-< directions to install > 
+### Directions to install > 
 ```bash
 npm install
 ```
@@ -24,10 +24,11 @@ npm install
 
 ## Environment Variables
  - PORT
+ - TOKEN_SECRET
  - GOOGLE_APPLICATION_CREDENTIALS
 
 
-< directions to execute >
+### Directions to execute
 
 ```bash
 nodemon app.js
