@@ -1,15 +1,9 @@
 const router = require('express').Router()
 const jwt = require('jsonwebtoken')
-const admin = require('firebase-admin')
-const { getFirestore } = require('firebase-admin/firestore')
-
-// Initializing Firebase Admin
-admin.initializeApp({
-  credential: admin.credential.applicationDefault()
-})
+const admin = require('../../firebase/fb')
 
 // Initializing Firestore DB
-const db = getFirestore()
+const db = admin.firestore()
 
 router.post('/login', (req, res) => {
   // IDToken to be sent from Firebase Client on the Frontend
