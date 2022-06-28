@@ -13,13 +13,13 @@ app.use(cors())
 
 app.use('/auth', authRoute)
 
-app.get('/',(req,res)=>{
-    res.status(200).json({
-        status: 200,
-        message: "HPAIR Application Backend Up and Running. Refer Documentation"
-    })
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 200,
+    message: 'HPAIR Application Backend Up and Running. Refer Documentation'
+  })
 })
 
 app.listen(process.env.PORT, () => {
-    console.log('Listening on Port ' + process.env.PORT)
-  })
+  console.log('Listening on Port ' + process.env.PORT)
+})
