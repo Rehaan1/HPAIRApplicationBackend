@@ -28,4 +28,35 @@ router.get('/userProfile', verifyToken, (req, res) => {
     })
 })
 
+router.patch('/updateProfile', verifyToken, (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  // safety check to not allow email change
+  if (!req.body.email) {
+    req.body.email = req.user.email
+  }
+
+  // replace profile data of the user with new profile data
+  db.collection(process.env.FIREBASE_APPLICANT_COLLECTION)
+    .doc(req.user._id)
+    .set(req.body)
+    .then((data) => {
+      return res.status(200).json({
+        message: 'updated',
+        data: data
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
 module.exports = router
