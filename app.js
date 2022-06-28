@@ -13,7 +13,7 @@ app.use(express.json())
 app.use(cors())
 
 app.use('/auth', authRoute)
-app.use('/profile',profileRoute)
+app.use('/profile', profileRoute)
 
 app.get('/', (req, res) => {
   res.status(200).json({
