@@ -36,9 +36,7 @@ router.patch('/updateProfile', verifyToken, (req, res) => {
   }
 
   // safety check to not allow email change
-  if (!req.body.email) {
-    req.body.email = req.user.email
-  }
+  req.body.email = req.user.email
 
   // replace profile data of the user with new profile data
   db.collection(process.env.FIREBASE_APPLICANT_COLLECTION)
