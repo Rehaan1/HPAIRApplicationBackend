@@ -265,7 +265,7 @@ router.get('/getPending', verifyToken, (req, res) => {
           if (docs.empty) {
             return res.status(200).json({
               success: true,
-              message: 'Pending User Data Empty'
+              message: 'Pending User Data Document Empty'
             })
           }
 
@@ -507,6 +507,77 @@ router.post('/rejectRequest', verifyToken, (req, res) => {
                 err: error
               })
             })
+        })
+        .catch((error) => {
+          console.log(error)
+          return res.status(400).json({
+            success: false,
+            err: error
+          })
+        })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
+router.get('/getFriends', verifyToken, (req, res) => {
+  friendsRef.doc(req.user._id)
+    .get()
+    .then((docu) => {
+      if (!docu.exists) {
+        return res.status(200).json({
+          success: true,
+          message: 'No Friends'
+        })
+      }
+
+      const incStatusObj = docu.data().incStatus
+      const outStatusObj = docu.data().outStatus
+
+      const friends = []
+
+      for (const key in incStatusObj) {
+        if (incStatusObj[key] === 1) {
+          friends.push(key)
+        }
+      }
+      for (const key in outStatusObj) {
+        if (outStatusObj[key] === 1) {
+          friends.push(key)
+        }
+      }
+
+      if (friends.length <= 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'Friend Data Empty'
+        })
+      }
+
+      db.collection(process.env.FIREBASE_APPLICANT_COLLECTION)
+        .where('__name__', 'in', friends)
+        .get()
+        .then((docs) => {
+          if (docs.empty) {
+            return res.status(200).json({
+              success: true,
+              message: 'Friend Data Documents Empty'
+            })
+          }
+
+          const list = {}
+          docs.forEach(document => {
+            list[document.id] = document.data()
+          })
+          return res.status(200).json({
+            success: true,
+            message: list
+          })
         })
         .catch((error) => {
           console.log(error)
