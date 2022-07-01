@@ -15,6 +15,12 @@ router.post('/sendRequest', verifyToken, (req, res) => {
     })
   }
 
+  if (req.body.fuid === req.user._id) {
+    return res.status(400).json({
+      error: 'cannot send yourself connection request. To Connect with yourself, consider meditation ;)'
+    })
+  }
+
   const uid = req.user._id
 
   friendsRef.doc(req.body.fuid)
@@ -28,7 +34,8 @@ router.post('/sendRequest', verifyToken, (req, res) => {
         friendsRef.doc(req.body.fuid)
           .set({
             // add the users request as pending
-            status: statusObj
+            incStatus: statusObj,
+            outStatus: {}
           })
           .then((data) => {
             // Check Users Document
@@ -43,7 +50,8 @@ router.post('/sendRequest', verifyToken, (req, res) => {
                   friendsRef.doc(uid)
                     .set({
                       // add individuals request as pending
-                      status: statusObj
+                      outStatus: statusObj,
+                      incStatus: {}
                     })
                     .then((data) => {
                       return res.status(200).json({
@@ -60,7 +68,10 @@ router.post('/sendRequest', verifyToken, (req, res) => {
                     })
                 } else {
                 // If Users Document Exists
-                  const statusObj = docu.data().status
+                  let statusObj = docu.data().outStatus
+                  if (!statusObj) {
+                    statusObj = {}
+                  }
                   // If Already Request Sent Before
                   if (req.body.fuid in statusObj) {
                     return res.status(200).json({
@@ -72,7 +83,7 @@ router.post('/sendRequest', verifyToken, (req, res) => {
                     // Update Users Document
                     friendsRef.doc(uid)
                       .update({
-                        status: statusObj
+                        outStatus: statusObj
                       })
                       .then((data) => {
                         return res.status(200).json({
@@ -109,7 +120,11 @@ router.post('/sendRequest', verifyToken, (req, res) => {
         // If Document Exists of Individual
 
         // Get Friend Status of Individual
-        const statusObj = docu.data().status
+        let statusObj = docu.data().incStatus
+
+        if (!statusObj) {
+          statusObj = {}
+        }
 
         // If Already Request Sent Before
         if (uid in statusObj) {
@@ -121,7 +136,7 @@ router.post('/sendRequest', verifyToken, (req, res) => {
           statusObj[uid] = 0
           friendsRef.doc(req.body.fuid)
             .update({
-              status: statusObj
+              incStatus: statusObj
             })
             .then((data) => {
             // Check Users Document
@@ -136,7 +151,8 @@ router.post('/sendRequest', verifyToken, (req, res) => {
                     friendsRef.doc(uid)
                       .set({
                       // add individuals request as pending
-                        status: statusObj
+                        outStatus: statusObj,
+                        incStatus: {}
                       })
                       .then((data) => {
                         return res.status(200).json({
@@ -151,36 +167,40 @@ router.post('/sendRequest', verifyToken, (req, res) => {
                           err: error
                         })
                       })
-                  }
-
-                  // If Users Document Exists
-                  const statusObj = docu.data().status
-                  // If Already Request Sent Before
-                  if (req.body.fuid in statusObj) {
-                    return res.status(200).json({
-                      success: false,
-                      message: 'Friend Request Already Pending'
-                    })
                   } else {
-                    statusObj[req.body.fuid] = 0
-                    // Update Users Document
-                    friendsRef.doc(uid)
-                      .update({
-                        status: statusObj
+                  // If Users Document Exists
+                    console.log(docu.data())
+                    let statusObj = docu.data().outStatus
+                    if (!statusObj) {
+                      statusObj = {}
+                    }
+                    // If Already Request Sent Before
+                    if (req.body.fuid in statusObj) {
+                      return res.status(200).json({
+                        success: false,
+                        message: 'Friend Request Already Pending'
                       })
-                      .then((data) => {
-                        return res.status(200).json({
-                          success: true,
-                          message: 'Friend Request Sent'
+                    } else {
+                      statusObj[req.body.fuid] = 0
+                      // Update Users Document
+                      friendsRef.doc(uid)
+                        .update({
+                          outStatus: statusObj
                         })
-                      })
-                      .catch((error) => {
-                        console.log(error)
-                        return res.status(400).json({
-                          success: false,
-                          err: error
+                        .then((data) => {
+                          return res.status(200).json({
+                            success: true,
+                            message: 'Friend Request Sent'
+                          })
                         })
-                      })
+                        .catch((error) => {
+                          console.log(error)
+                          return res.status(400).json({
+                            success: false,
+                            err: error
+                          })
+                        })
+                    }
                   }
                 })
                 .catch((error) => {
@@ -200,6 +220,64 @@ router.post('/sendRequest', verifyToken, (req, res) => {
             })
         }
       }
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
+router.get('/getPending', verifyToken, (req, res) => {
+  friendsRef.doc(req.user._id)
+    .get()
+    .then((docu) => {
+      if (!docu.exists) {
+        return res.status(200).json({
+          success: true,
+          message: 'No Pending Requests'
+        })
+      }
+
+      const statusObj = docu.data().status
+
+      const pendingReq = []
+
+      for (const key in statusObj) {
+        if (statusObj[key] === 0) {
+          pendingReq.push(key)
+        }
+      }
+
+      db.collection(process.env.FIREBASE_APPLICANT_COLLECTION)
+        .where('__name__', 'in', pendingReq)
+        .get()
+        .then((docs) => {
+          if (docs.empty) {
+            return res.status(200).json({
+              success: true,
+              message: 'Pending User Data Empty'
+            })
+          }
+
+          const list = {}
+          docs.forEach(document => {
+            list[document.id] = document.data()
+          })
+          return res.status(200).json({
+            success: true,
+            message: list
+          })
+        })
+        .catch((error) => {
+          console.log(error)
+          return res.status(400).json({
+            success: false,
+            err: error
+          })
+        })
     })
     .catch((error) => {
       console.log(error)
