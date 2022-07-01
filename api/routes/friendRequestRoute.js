@@ -295,4 +295,110 @@ router.get('/getPending', verifyToken, (req, res) => {
     })
 })
 
+router.post('/acceptRequest', verifyToken, (req, res) => {
+  // check if uid of individual sent for request
+  if (!req.body.fuid) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  if (req.body.fuid === req.user._id) {
+    return res.status(400).json({
+      error: 'cannot send yourself connection request. To Connect with yourself, consider meditation ;)'
+    })
+  }
+
+  friendsRef.doc(req.user._id)
+    .get()
+    .then((docu) => {
+      if (!docu.exists) {
+        return res.status(200).json({
+          success: false,
+          message: 'No Requests'
+        })
+      }
+
+      // get users incoming request status
+      const statusObj = docu.data().incStatus
+
+      if (!(req.body.fuid in statusObj)) {
+        return res.status(200).json({
+          success: false,
+          message: 'No Request of UID There to Acccept'
+        })
+      }
+      // Update status to accepted
+      statusObj[req.body.fuid] = 1
+
+      friendsRef.doc(req.user._id)
+        .update({
+          incStatus: statusObj
+        })
+        .then((data) => {
+          // get individual's document
+          friendsRef.doc(req.body.fuid)
+            .get()
+            .then((docu) => {
+              if (!docu.exists) {
+                return res.status(200).json({
+                  success: false,
+                  message: 'No Requests'
+                })
+              }
+
+              // get users outgoing request status
+              const statusObj = docu.data().outStatus
+
+              if (!(req.user._id in statusObj)) {
+                return res.status(200).json({
+                  success: false,
+                  message: 'Users Request Mismatch'
+                })
+              }
+              // update status to accepted
+              statusObj[req.user._id] = 1
+              friendsRef.doc(req.body.fuid)
+                .update({
+                  outStatus: statusObj
+                })
+                .then((data) => {
+                  return res.status(200).json({
+                    success: true,
+                    message: 'Request Accepted Successfully'
+                  })
+                })
+                .catch((error) => {
+                  console.log(error)
+                  return res.status(400).json({
+                    success: false,
+                    err: error
+                  })
+                })
+            })
+            .catch((error) => {
+              console.log(error)
+              return res.status(400).json({
+                success: false,
+                err: error
+              })
+            })
+        })
+        .catch((error) => {
+          console.log(error)
+          return res.status(400).json({
+            success: false,
+            err: error
+          })
+        })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
 module.exports = router
