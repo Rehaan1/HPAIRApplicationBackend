@@ -295,6 +295,71 @@ router.get('/getPending', verifyToken, (req, res) => {
     })
 })
 
+router.get('/getOutgoingPending', verifyToken, (req, res) => {
+  friendsRef.doc(req.user._id)
+    .get()
+    .then((docu) => {
+      if (!docu.exists) {
+        return res.status(200).json({
+          success: true,
+          message: 'No Pending Requests'
+        })
+      }
+
+      const statusObj = docu.data().outStatus
+
+      const pendingReq = []
+
+      for (const key in statusObj) {
+        if (statusObj[key] === 0) {
+          pendingReq.push(key)
+        }
+      }
+
+      if (pendingReq.length <= 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'Pending User Data Empty'
+        })
+      }
+
+      db.collection(process.env.FIREBASE_APPLICANT_COLLECTION)
+        .where('__name__', 'in', pendingReq)
+        .get()
+        .then((docs) => {
+          if (docs.empty) {
+            return res.status(200).json({
+              success: true,
+              message: 'Pending User Data Document Empty'
+            })
+          }
+
+          const list = {}
+          docs.forEach(document => {
+            list[document.id] = document.data()
+          })
+          return res.status(200).json({
+            success: true,
+            message: list
+          })
+        })
+        .catch((error) => {
+          console.log(error)
+          return res.status(400).json({
+            success: false,
+            err: error
+          })
+        })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
 router.post('/acceptRequest', verifyToken, (req, res) => {
   // check if uid of individual sent for request
   if (!req.body.fuid) {
