@@ -241,7 +241,7 @@ router.get('/getPending', verifyToken, (req, res) => {
         })
       }
 
-      const statusObj = docu.data().status
+      const statusObj = docu.data().incStatus
 
       const pendingReq = []
 
@@ -249,6 +249,13 @@ router.get('/getPending', verifyToken, (req, res) => {
         if (statusObj[key] === 0) {
           pendingReq.push(key)
         }
+      }
+
+      if (pendingReq.length <= 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'Pending User Data Empty'
+        })
       }
 
       db.collection(process.env.FIREBASE_APPLICANT_COLLECTION)
