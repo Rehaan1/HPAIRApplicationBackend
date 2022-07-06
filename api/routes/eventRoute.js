@@ -470,4 +470,50 @@ router.get('/getFeatured', verifyToken, (req, res) => {
     })
 })
 
+router.post('/getEventOnDate', verifyToken, (req, res) => {
+  if (!req.body.date) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  eventsRef.where('date', '==', req.body.date)
+    .orderBy('time', 'asc')
+    .get()
+    .then((data) => {
+      const events = {}
+      data.forEach((doc) => {
+        if (doc.data().sponsorImageUrl) {
+          events[doc.id] = {
+            title: doc.data().title,
+            time: doc.data().time,
+            date: doc.data().date,
+            eventImageUrl: doc.data().eventImageUrl,
+            sponsorImageUrl: doc.data().sponsorImageUrl
+          }
+        } else {
+          events[doc.id] = {
+            title: doc.data().title,
+            time: doc.data().time,
+            date: doc.data().date,
+            eventImageUrl: doc.data().eventImageUrl
+          }
+        }
+      })
+
+      return res.status(200).json({
+        status: 200,
+        message: 'success',
+        data: events
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
 module.exports = router
