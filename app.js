@@ -6,6 +6,7 @@ const authRoute = require('./api/routes/authRoute')
 const profileRoute = require('./api/routes/profileRoute')
 const friendRequestRoute = require('./api/routes/friendRequestRoute')
 const articleRoute = require('./api/routes/articleRoute')
+const eventRoute = require('./api/routes/eventRoute')
 
 const app = express()
 
@@ -18,6 +19,7 @@ app.use('/auth', authRoute)
 app.use('/profile', profileRoute)
 app.use('/connect', friendRequestRoute)
 app.use('/article', articleRoute)
+app.use('/event', eventRoute)
 
 app.get('/', (req, res) => {
   res.status(200).json({
