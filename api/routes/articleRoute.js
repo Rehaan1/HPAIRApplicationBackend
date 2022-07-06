@@ -253,4 +253,28 @@ router.get('/getFeatured', verifyToken, (req, res) => {
     })
 })
 
+router.delete('/delete', verifyToken, (req, res) => {
+  if (!req.body.docId) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  articlesRef.doc(req.body.docId)
+    .delete()
+    .then((data) => {
+      return res.status(200).json({
+        status: 200,
+        message: 'deleted successfully'
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
 module.exports = router
