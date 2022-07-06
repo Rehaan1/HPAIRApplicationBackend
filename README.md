@@ -15,6 +15,8 @@
  - jsonwebtoken
  - firebase-admin
  - morgan
+ - salted-md5
+ - uuid4
 
  ## Running
 
@@ -35,6 +37,10 @@ npm install
  - GOOGLE_CONFIG_BASE64
  - FIREBASE_FRIEND_COLLECTION
  - FIREBASE_APPLICANT_COLLECTION
+ - FIREBASE_ARTICLE_COLLECTION
+ - STORAGE_BUCKET
+ - SALT
+ - BASE_URL
 
 
 ### Directions to execute

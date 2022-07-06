@@ -17,7 +17,7 @@ app.use(cors())
 app.use('/auth', authRoute)
 app.use('/profile', profileRoute)
 app.use('/connect', friendRequestRoute)
-app.use('/article',articleRoute)
+app.use('/article', articleRoute)
 
 app.get('/', (req, res) => {
   res.status(200).json({
