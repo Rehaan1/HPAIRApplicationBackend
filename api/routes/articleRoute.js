@@ -225,4 +225,32 @@ router.get('/getAll', verifyToken, (req, res) => {
     })
 })
 
+router.get('/getFeatured', verifyToken, (req, res) => {
+  articlesRef.where('featured', '==', '1')
+    .get()
+    .then((data) => {
+      const articles = {}
+
+      data.forEach((doc) => {
+        articles[doc.id] = {
+          title: doc.data().title,
+          imageUrl: doc.data().imageUrl
+        }
+      })
+
+      return res.status(200).json({
+        status: 200,
+        message: 'success',
+        data: articles
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
 module.exports = router
