@@ -126,7 +126,7 @@ router.patch('/update', verifyToken, upload.single('file'), async (req, res) => 
             return res.status(200).json({
               status: '200',
               message: 'Article Created Successfully',
-              articleId: data
+              data: data
             })
           })
           .catch((error) => {
@@ -154,7 +154,7 @@ router.patch('/update', verifyToken, upload.single('file'), async (req, res) => 
         return res.status(200).json({
           status: '200',
           message: 'Article Updated Successfully',
-          articleId: data
+          data: data
         })
       })
       .catch((error) => {

@@ -91,4 +91,85 @@ router.post('/create', verifyToken, upload.single('file'), async (req, res) => {
   }
 })
 
+router.patch('/update', verifyToken, upload.single('file'), async (req, res) => {
+  if (!req.body.eventId) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  if (!req.body.note) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  if (!req.body.docId) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  if (req.file) {
+    let name = saltedMd5(req.file.originalname, process.env.SALT)
+    name = name + uuid4()
+    const fileName = name + path.extname(req.file.originalname)
+
+    await bucket.file(fileName)
+      .createWriteStream()
+      .end(req.file.buffer)
+      .on('finish', (data) => {
+        const imageUrl = process.env.BASE_URL + fileName
+
+        userEventNotesRef.doc(req.body.docId).update({
+          eventId: req.body.eventId,
+          note: req.body.note,
+          userId: req.user._id,
+          imageUrl: imageUrl
+        })
+          .then((data) => {
+            return res.status(200).json({
+              status: '200',
+              message: 'User Note Updated Successfully',
+              data: data
+            })
+          })
+          .catch((error) => {
+            console.log(error)
+            return res.status(400).json({
+              success: false,
+              err: error
+            })
+          })
+      })
+      .on('error', (err) => {
+        console.log(err)
+        return res.status(400).json({
+          status: 400,
+          val: err
+        })
+      })
+  } else {
+    userEventNotesRef.doc(req.body.docId).update({
+      eventId: req.body.eventId,
+      note: req.body.note,
+      userId: req.user._id
+    })
+      .then((data) => {
+        return res.status(200).json({
+          status: '200',
+          message: 'User Note Updated Successfully',
+          data: data
+        })
+      })
+      .catch((error) => {
+        console.log(error)
+        return res.status(400).json({
+          success: false,
+          err: error
+        })
+      })
+  }
+})
+
 module.exports = router
