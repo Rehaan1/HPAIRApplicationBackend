@@ -199,4 +199,35 @@ router.delete('/removeImage', verifyToken, (req, res) => {
     })
 })
 
+router.get('/', verifyToken, (req, res) => {
+  if (!req.body.docId) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  userEventNotesRef.doc(req.body.docId)
+    .get()
+    .then((docu) => {
+      if (!docu.exists) {
+        return res.status(400).json({
+          status: 400,
+          message: 'doc does not exist'
+        })
+      }
+      return res.status(200).json({
+        status: 200,
+        message: 'success',
+        data: docu.data()
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
 module.exports = router
