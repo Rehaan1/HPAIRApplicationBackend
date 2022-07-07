@@ -7,6 +7,7 @@ const profileRoute = require('./api/routes/profileRoute')
 const friendRequestRoute = require('./api/routes/friendRequestRoute')
 const articleRoute = require('./api/routes/articleRoute')
 const eventRoute = require('./api/routes/eventRoute')
+const userEventNotes = require('./api/routes/userEventNotes')
 
 const app = express()
 
@@ -20,6 +21,7 @@ app.use('/profile', profileRoute)
 app.use('/connect', friendRequestRoute)
 app.use('/article', articleRoute)
 app.use('/event', eventRoute)
+app.use('/userEventNotes', userEventNotes)
 
 app.get('/', (req, res) => {
   res.status(200).json({
