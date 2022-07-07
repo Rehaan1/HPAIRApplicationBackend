@@ -6,6 +6,7 @@ const path = require('path')
 const upload = multer({ storage: multer.memoryStorage() })
 const saltedMd5 = require('salted-md5')
 const uuid4 = require('uuid4')
+const FieldValue = require('firebase-admin').firestore.FieldValue
 
 // Initializing Firestore DB
 const db = admin.firestore()
@@ -170,6 +171,32 @@ router.patch('/update', verifyToken, upload.single('file'), async (req, res) => 
         })
       })
   }
+})
+
+router.delete('/removeImage', verifyToken, (req, res) => {
+  if (!req.body.docId) {
+    return res.status(400).json({
+      error: 'missing required parameter. refer documentation'
+    })
+  }
+
+  userEventNotesRef.doc(req.body.docId).update({
+    imageUrl: FieldValue.delete()
+  })
+    .then((data) => {
+      return res.status(200).json({
+        status: '200',
+        message: 'Image Removed Successfully',
+        data: data
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
 })
 
 module.exports = router
