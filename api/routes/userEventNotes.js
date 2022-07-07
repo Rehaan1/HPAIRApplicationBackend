@@ -230,4 +230,31 @@ router.get('/', verifyToken, (req, res) => {
     })
 })
 
+router.get('/getAll', verifyToken, (req, res) => {
+  userEventNotesRef.where('userId', '==', req.user._id)
+    .get()
+    .then((data) => {
+      const userEventNotes = {}
+
+      data.forEach((doc) => {
+        userEventNotes[doc.id] = {
+          data: doc.data()
+        }
+      })
+
+      return res.status(200).json({
+        status: 200,
+        message: 'success',
+        data: userEventNotes
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(400).json({
+        success: false,
+        err: error
+      })
+    })
+})
+
 module.exports = router
